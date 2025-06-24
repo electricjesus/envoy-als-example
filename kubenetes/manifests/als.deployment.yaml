@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: als-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: als
+  template:
+    metadata:
+      labels:
+        app: als
+    spec:
+      containers:
+        - name: als
+          image: sethm/envoy-als-example:latest
+          ports:
+            - containerPort: 8080
