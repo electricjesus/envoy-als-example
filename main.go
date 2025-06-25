@@ -14,12 +14,15 @@ import (
 )
 
 var (
-	PORT = ":8080"
+	PORT    = ":8080"
+	VERSION = "0.1.0"
 )
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
+
+	log.Infof("Starting access log service version %s", VERSION)
 
 	gs := grpc.NewServer()
 	accessLogService := &accessLogserver{}
@@ -55,6 +58,8 @@ var (
 )
 
 func (s *accessLogserver) StreamAccessLogs(stream envoyaccesslog.AccessLogService_StreamAccessLogsServer) error {
+	log.Info("Received new access log stream")
+
 	ctx := stream.Context()
 
 	for {
@@ -74,6 +79,8 @@ func (s *accessLogserver) StreamAccessLogs(stream envoyaccesslog.AccessLogServic
 			log.Infof("Error receiving access log entry: %v", err)
 			return err
 		}
+
+		log.Infof("Received access log entry: %v", logEntry)
 
 		switch logEntry.LogEntries.(type) {
 		case *envoyaccesslog.StreamAccessLogsMessage_HttpLogs:
