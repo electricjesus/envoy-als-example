@@ -9,6 +9,8 @@ import (
 
 	envoyaccesslogdata "github.com/envoyproxy/go-control-plane/envoy/data/accesslog/v3"
 	envoyaccesslog "github.com/envoyproxy/go-control-plane/envoy/service/accesslog/v3"
+	otelaccesslog "go.opentelemetry.io/proto/otlp/collector/logs/v1"
+
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -51,7 +53,9 @@ func main() {
 	os.Exit(0)
 }
 
-type accessLogserver struct{}
+type accessLogserver struct {
+	*otelaccesslog.UnimplementedLogsServiceServer
+}
 
 var (
 	_ envoyaccesslog.AccessLogServiceServer = &accessLogserver{}
@@ -121,5 +125,6 @@ func (s *accessLogserver) handleTcpLogEntry(logEntry *envoyaccesslogdata.TCPAcce
 
 func (s *accessLogserver) Register(grpcServer *grpc.Server) {
 	envoyaccesslog.RegisterAccessLogServiceServer(grpcServer, s)
+	otelaccesslog.RegisterLogsServiceServer(grpcServer, s)
 	log.Info("Access log service registered")
 }
